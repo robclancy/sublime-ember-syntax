@@ -1,0 +1,504 @@
+%YAML 1.2
+---
+# http://www.sublimetext.com/docs/syntax.html
+name: Glimmer
+file_extensions:
+  - hbs
+scope: text.html.handlebars
+contexts:
+  main:
+    - include: style
+    - include: script
+    - include: glimmer-else-block
+    - include: glimmer-bools
+    - include: glimmer-special-block
+    - include: glimmer-unescaped-expression
+    - include: glimmer-comment-block
+    - include: glimmer-comment-inline
+    - include: glimmer-expression-property
+    - include: glimmer-control-expression
+    - include: glimmer-expression
+    - include: glimmer-block
+    - include: html-tag
+    - include: component-tag
+    - include: html-comment
+    - include: entities
+  as-keyword:
+    - match: \s\b(as)\b(?=\s\|)
+      scope: keyword.control
+  as-params:
+    - match: (?<!\|)(\|)
+      captures:
+        1: constant.other.symbol.begin.handlebars
+      push:
+        - meta_scope: keyword.block-params.handlebars
+        - match: (\|)(?!\|)
+          captures:
+            1: constant.other.symbol.end.handlebars
+          pop: true
+        - include: variable
+  attention:
+    - match: '@?(TODO|FIXME|CHANGED|XXX|IDEA|HACK|NOTE|REVIEW|NB|BUG|QUESTION|TEMP)\b'
+      scope: 'storage.type.class.${1:/downcase}'
+  boolean:
+    - match: true|false|undefined|null
+      captures:
+        0: string.regexp
+        1: string.regexp
+        2: string.regexp
+  component-tag:
+    - match: '(<\/?)(@|this.)?([a-zA-Z0-9-\$:\.]+)\b'
+      captures:
+        1: punctuation.definition.tag
+        2: support.function
+        3: entity.name.type
+      push:
+        - meta_scope: meta.tag.any.handlebars
+        - match: (\/?)(>)
+          captures:
+            1: punctuation.definition.tag
+            2: punctuation.definition.tag
+          pop: true
+        - include: tag-like-content
+  digit:
+    - match: \d*(\.)?\d+
+      captures:
+        0: constant.numeric
+        1: constant.numeric
+        2: constant.numeric
+  entities:
+    - match: '(&)([a-zA-Z0-9]+|#[0-9]+|#x[0-9a-fA-F]+)(;)'
+      scope: constant.character.entity.html.handlebars
+      captures:
+        1: punctuation.definition.entity.html.handlebars
+        3: punctuation.definition.entity.html.handlebars
+    - match: '&'
+      scope: invalid.illegal.bad-ampersand.html.handlebars
+  glimmer-argument:
+    - match: '\s(@[a-zA-Z0-9:_.-]+)(=)?'
+      captures:
+        1: entity.other.attribute-name.handlebars.argument
+        2: punctuation.separator.key-value.html.handlebars
+  glimmer-as-stuff:
+    - include: as-keyword
+    - include: as-params
+  glimmer-block:
+    - match: '({{~?)(#|/)(([@\$a-zA-Z0-9_/.-]+))'
+      captures:
+        1: punctuation.definition.tag
+        2: punctuation.definition.tag
+        3: keyword.control
+      push:
+        - meta_scope: entity.expression.handlebars
+        - match: '(~?}})'
+          captures:
+            1: punctuation.definition.tag
+            2: punctuation.definition.tag
+            3: keyword.control
+          pop: true
+        - include: glimmer-as-stuff
+        - include: glimmer-supexp-content
+  glimmer-bools:
+    - match: '({{~?)(true|false|null|undefined|\d*(\.)?\d+)(~?}})'
+      scope: entity.expression.handlebars
+      captures:
+        0: keyword.operator
+        1: keyword.operator
+        2: string.regexp
+        3: string.regexp
+        4: keyword.operator
+  glimmer-comment-block:
+    - match: '{{!--'
+      captures:
+        0: punctuation.definition.block.comment.glimmer
+      push:
+        - meta_scope: comment.block.glimmer
+        - match: '--}}'
+          captures:
+            0: punctuation.definition.block.comment.glimmer
+          pop: true
+        - include: script
+        - include: attention
+  glimmer-comment-inline:
+    - match: '{{!'
+      captures:
+        0: punctuation.definition.block.comment.glimmer
+      push:
+        - meta_scope: comment.inline.glimmer
+        - match: '}}'
+          captures:
+            0: punctuation.definition.block.comment.glimmer
+          pop: true
+        - include: script
+        - include: attention
+  glimmer-component-path:
+    - match: (::|\$|\.)
+      captures:
+        1: punctuation.definition.tag
+  glimmer-control-expression:
+    - match: '({{~?)(([-a-z/]+)\s)'
+      captures:
+        1: keyword.operator
+        2: keyword.operator
+        3: keyword.control
+      push:
+        - meta_scope: entity.expression.handlebars
+        - match: '(~?}})'
+          captures:
+            1: keyword.operator
+            2: keyword.operator
+            3: keyword.control
+          pop: true
+        - include: glimmer-supexp-content
+  glimmer-else-block:
+    - match: '({{~?)(else\s[a-z]+\s|else)([()@a-zA-Z0-9\.\s\b]+)?(~?}})'
+      scope: entity.expression.handlebars
+      captures:
+        0: punctuation.definition.tag
+        1: punctuation.definition.tag
+        2: keyword.control
+        3: keyword.control
+        4: punctuation.definition.tag
+  glimmer-expression:
+    - match: '({{~?)(([()\s@a-zA-Z0-9_.-]+))'
+      captures:
+        1: keyword.operator
+        2: keyword.operator
+        3: support.function
+      push:
+        - meta_scope: entity.expression.handlebars
+        - match: '(~?}})'
+          captures:
+            1: keyword.operator
+            2: keyword.operator
+            3: support.function
+          pop: true
+        - include: glimmer-supexp-content
+  glimmer-expression-property:
+    - match: '({{~?)((@|this.)([a-zA-Z0-9_.-]+))'
+      captures:
+        1: keyword.operator
+        2: keyword.operator
+        3: support.function
+        4: support.function
+      push:
+        - meta_scope: entity.expression.handlebars
+        - match: '(~?}})'
+          captures:
+            1: keyword.operator
+            2: keyword.operator
+            3: support.function
+            4: support.function
+          pop: true
+        - include: glimmer-supexp-content
+  glimmer-parameter-name:
+    - match: '\b([a-zA-Z0-9_-]+)(\s?=)'
+      captures:
+        1: variable.parameter.name.handlebars
+        2: punctuation.definition.expression.handlebars
+  glimmer-parameter-value:
+    - match: '\b([a-zA-Z0-9:_.-]+)\b(?!=)'
+      captures:
+        1: support.function
+  glimmer-special-block:
+    - match: '({{~?)(yield|outlet)(~?}})'
+      scope: entity.expression.handlebars
+      captures:
+        0: keyword.operator
+        1: keyword.operator
+        2: keyword.control
+        3: keyword.operator
+  glimmer-subexp:
+    - match: '(\()([@a-zA-Z0-9.-]+)'
+      captures:
+        1: keyword.other
+        2: keyword.control
+      push:
+        - meta_scope: entity.subexpression.handlebars
+        - match: (\))
+          captures:
+            1: keyword.other
+            2: keyword.control
+          pop: true
+        - include: glimmer-supexp-content
+  glimmer-supexp-content:
+    - include: glimmer-subexp
+    - include: string-single-quoted-handlebars
+    - include: string-double-quoted-handlebars
+    - include: boolean
+    - include: digit
+    - include: param
+    - include: glimmer-parameter-name
+    - include: glimmer-parameter-value
+  glimmer-unescaped-expression:
+    - match: '{{{'
+      captures:
+        0: keyword.operator
+      push:
+        - meta_scope: entity.unescaped.expression.handlebars
+        - match: '}}}'
+          captures:
+            0: keyword.operator
+          pop: true
+        - include: string-single-quoted-handlebars
+        - include: string-double-quoted-handlebars
+        - include: glimmer-subexp
+        - include: param
+  html-attribute:
+    - match: '\s([a-zA-Z0-9:_.-]+)(=)?'
+      captures:
+        1: entity.other.attribute-name.handlebars
+        2: punctuation.separator.key-value.html.handlebars
+  html-comment:
+    - match: <!--
+      captures:
+        0: punctuation.definition.comment.html.handlebars
+      push:
+        - meta_scope: comment.block.html.handlebars
+        - match: '--\s*>'
+          captures:
+            0: punctuation.definition.comment.html.handlebars
+          pop: true
+        - include: attention
+        - match: '--'
+          scope: invalid.illegal.bad-comments-or-CDATA.html.handlebars
+  html-tag:
+    - match: '(<\/?)([a-z0-9-]+)(?!\.|:)\b'
+      captures:
+        1: punctuation.definition.tag
+        2: entity.name.tag.html.handlebars
+      push:
+        - meta_scope: meta.tag.any.handlebars
+        - match: (\/?)(>)
+          captures:
+            1: punctuation.definition.tag
+            2: punctuation.definition.tag
+          pop: true
+        - include: tag-like-content
+  param:
+    - match: '(@|this.)([a-zA-Z0-9_.-]+)'
+      captures:
+        0: support.function
+        1: support.function
+  script:
+    - match: '(^[ \t]+)?(?=<(?i:script)\b(?!-))'
+      captures:
+        1: punctuation.whitespace.embedded.leading.html
+      push:
+        - match: '(?!\G)([ \t]*$\n?)?'
+          captures:
+            1: punctuation.whitespace.embedded.trailing.html
+          pop: true
+        - match: (<)((?i:script))\b
+          captures:
+            0: meta.tag.metadata.script.start.html
+            1: punctuation.definition.tag.begin.html
+            2: entity.name.tag.html
+          push:
+            - meta_scope: meta.embedded.block.html
+            - match: (/)((?i:script))(>)
+              captures:
+                0: meta.tag.metadata.script.end.html
+                1: punctuation.definition.tag.begin.html
+                2: entity.name.tag.html
+                3: punctuation.definition.tag.end.html
+              pop: true
+            - match: \G
+              push:
+                - match: (?=/)
+                  pop: true
+                - match: (>)
+                  captures:
+                    0: meta.tag.metadata.script.start.html
+                    1: punctuation.definition.tag.end.html
+                  push:
+                    - match: ((<))(?=/(?i:script))
+                      captures:
+                        0: meta.tag.metadata.script.end.html
+                        1: punctuation.definition.tag.begin.html
+                        2: source.js-ignored-vscode
+                      pop: true
+                    - match: \G
+                      push:
+                        - meta_scope: source.js
+                        - match: (?=</(?i:script))
+                          pop: true
+                        - match: '(^[ \t]+)?(?=//)'
+                          captures:
+                            1: punctuation.whitespace.comment.leading.js
+                          push:
+                            - match: (?!\G)
+                              pop: true
+                            - match: //
+                              captures:
+                                0: punctuation.definition.comment.js
+                              push:
+                                - meta_scope: comment.line.double-slash.js
+                                - match: (?=</script)|\n
+                                  pop: true
+                        - match: /\*
+                          captures:
+                            0: punctuation.definition.comment.js
+                          push:
+                            - meta_scope: comment.block.js
+                            - match: \*/|(?=</script)
+                              captures:
+                                0: punctuation.definition.comment.js
+                              pop: true
+                        - include: scope:source.js
+                - match: |-
+                    (?ix:
+                      (?=
+                        type\s*=\s*
+                        ('|"|)
+                        text/
+                        (
+                          x-handlebars
+                          | (x-(handlebars-)?|ng-)?template
+                          | html
+                        )
+                        [\s"'>]
+                      )
+                    )
+                  push:
+                    - match: ((<))(?=/(?i:script))
+                      captures:
+                        0: meta.tag.metadata.script.end.html
+                        1: punctuation.definition.tag.begin.html
+                        2: text.html.basic
+                      pop: true
+                    - match: (?!\G)
+                      push:
+                        - meta_scope: text.html.basic
+                        - match: (?=</(?i:script))
+                          pop: true
+                        - include: scope:text.html.basic
+                - match: (?=(?i:type))
+                  push:
+                    - match: (<)(?=/(?i:script))
+                      captures:
+                        0: meta.tag.metadata.script.end.html
+                        1: punctuation.definition.tag.begin.html
+                      pop: true
+                - include: string-double-quoted-html
+                - include: string-single-quoted-html
+                - include: glimmer-argument
+                - include: html-attribute
+  string-double-quoted-handlebars:
+    - match: '"'
+      captures:
+        0: punctuation.definition.string.begin.handlebars
+      push:
+        - meta_scope: string.quoted.double.handlebars
+        - match: '"'
+          captures:
+            0: punctuation.definition.string.end.handlebars
+          pop: true
+        - match: \\"
+          scope: constant.character.escape.handlebars
+  string-double-quoted-html:
+    - match: '"'
+      captures:
+        0: punctuation.definition.string.begin.handlebars
+      push:
+        - meta_scope: string.quoted.double.html.handlebars
+        - match: '"'
+          captures:
+            0: punctuation.definition.string.end.handlebars
+          pop: true
+        - match: \\"
+          scope: constant.character.escape.handlebars
+        - include: glimmer-bools
+        - include: glimmer-expression-property
+        - include: glimmer-control-expression
+        - include: glimmer-expression
+        - include: glimmer-block
+  string-single-quoted-handlebars:
+    - match: "'"
+      captures:
+        0: punctuation.definition.string.begin.handlebars
+      push:
+        - meta_scope: string.quoted.single.handlebars
+        - match: "'"
+          captures:
+            0: punctuation.definition.string.end.handlebars
+          pop: true
+        - match: \\'
+          scope: constant.character.escape.handlebars
+  string-single-quoted-html:
+    - match: "'"
+      captures:
+        0: punctuation.definition.string.begin.handlebars
+      push:
+        - meta_scope: string.quoted.single.html.handlebars
+        - match: "'"
+          captures:
+            0: punctuation.definition.string.end.handlebars
+          pop: true
+        - match: \\'
+          scope: constant.character.escape.handlebars
+        - include: glimmer-bools
+        - include: glimmer-expression-property
+        - include: glimmer-control-expression
+        - include: glimmer-expression
+        - include: glimmer-block
+  style:
+    - match: '(^[ \t]+)?(?=<(?i:style)\b(?!-))'
+      captures:
+        1: punctuation.whitespace.embedded.leading.html
+      push:
+        - match: '(?!\G)([ \t]*$\n?)?'
+          captures:
+            1: punctuation.whitespace.embedded.trailing.html
+          pop: true
+        - match: (?i)(<)(style)(?=\s|/?>)
+          captures:
+            0: meta.tag.metadata.style.start.html
+            1: punctuation.definition.tag.begin.html
+            2: entity.name.tag.html
+          push:
+            - meta_scope: meta.embedded.block.html
+            - match: (?i)((<)/)(style)\s*(>)
+              captures:
+                0: meta.tag.metadata.style.end.html
+                1: punctuation.definition.tag.begin.html
+                2: source.css-ignored-vscode
+                3: entity.name.tag.html
+                4: punctuation.definition.tag.end.html
+              pop: true
+            - match: \G
+              captures:
+                1: punctuation.definition.tag.end.html
+              push:
+                - meta_scope: meta.tag.metadata.style.start.html
+                - match: (>)
+                  captures:
+                    1: punctuation.definition.tag.end.html
+                  pop: true
+                - include: glimmer-argument
+                - include: html-attribute
+            - match: (?!\G)
+              push:
+                - meta_scope: source.css
+                - match: (?=</(?i:style))
+                  pop: true
+                - include: scope:source.css
+  tag-like-content:
+    - include: glimmer-bools
+    - include: glimmer-unescaped-expression
+    - include: glimmer-comment-block
+    - include: glimmer-comment-inline
+    - include: glimmer-expression-property
+    - include: boolean
+    - include: digit
+    - include: glimmer-control-expression
+    - include: glimmer-expression
+    - include: glimmer-block
+    - include: string-double-quoted-html
+    - include: string-single-quoted-html
+    - include: glimmer-as-stuff
+    - include: glimmer-argument
+    - include: html-attribute
+  variable:
+    - match: '\b([a-zA-Z0-9-_]+)\b'
+      scope: support.function

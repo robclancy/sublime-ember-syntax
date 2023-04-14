@@ -1,0 +1,27 @@
+<button type="button" {{on 'click' this.sayHello}} ...attributes>
+	{{#if @message}}
+		{{uppercase (concat @message "!")}}
+	{{else}}
+		{{undefined}}
+	{{/if}}
+
+	{{#legacy/block}}
+		{{legacy/content}}
+	{{/legacy/block}}
+
+	<MyComponent as |context|>
+		{{context.info}}
+		<context.NestedComponent />
+		{{#context.curly}}
+			... say hola
+		{{/content.curly}}
+	</MyComponent>
+
+	<Slotted::Component>
+		<:header>{{t 'hello'}}</:header>
+		<:body>{{t 'world'}}</:body>
+		<:footer>{{t '!'}}</:footer>
+	</Slotted::Component>
+
+	{{yield to='default'}}
+</button>
